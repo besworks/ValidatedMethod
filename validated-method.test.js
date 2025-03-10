@@ -258,3 +258,113 @@ try {
 } catch (e) {
     console.error('✗ Unexpected parameters test failed:', e.message);
 }
+
+// Test 8: Async Methods
+async function runAsyncTests() {
+    try {
+        const asyncMethod = new ValidatedMethod({
+            input: 'string',
+            timeout: 'number'
+        }, async (opts) => {
+            await new Promise(resolve => setTimeout(resolve, opts.timeout));
+            return `Processed: ${opts.input}`;
+        });
+
+        // Test successful async execution
+        const successResult = await asyncMethod({
+            input: 'test',
+            timeout: 100
+        });
+        
+        console.assert(
+            successResult === 'Processed: test',
+            'Async method result failed'
+        );
+        console.log('✓ Async method test passed');
+
+        // Test parameter validation in async context
+        try {
+            await asyncMethod({
+                input: 42,  // Should fail type validation
+                timeout: 100
+            });
+            throw new Error('Should have failed validation');
+        } catch (e) {
+            if (e.message.includes('Expected string')) {
+                console.log('✓ Async stress test passed');
+            } else {
+                console.error('✗ Async stress test failed', e.message);
+            }
+        }
+
+        // Test 9: Promise Chain
+        const promiseChain = new ValidatedMethod({
+            data: 'array'
+        }, opts => Promise.resolve(opts.data)
+            .then(data => data.map(x => x * 2))
+        );
+
+        const chainResult = await promiseChain({
+            data: [1, 2, 3]
+        });
+        
+        console.assert(
+            JSON.stringify(chainResult) === '[2,4,6]',
+            'Promise chain result failed'
+        );
+        console.log('✓ Promise chain test passed');
+
+        // Test concurrent async execution
+        const results = await Promise.all([
+            asyncMethod({ input: 'first', timeout: 50 }),
+            asyncMethod({ input: 'second', timeout: 30 })
+        ]);
+        
+        console.assert(
+            results[0] === 'Processed: first' &&
+            results[1] === 'Processed: second',
+            'Concurrent async execution failed'
+        );
+        console.log('✓ Concurrent async test passed');
+
+        // Test timeout rejection
+        const timeoutMethod = new ValidatedMethod({
+            input: 'string'
+        }, async () => {
+            throw new Error('Timeout occurred');
+        });
+
+        try {
+            await timeoutMethod({ input: 'test' });
+            throw new Error('Should have failed with timeout');
+        } catch (e) {
+            if (e.message === 'Timeout occurred') {
+                console.log('✓ Async timeout test passed');
+            } else {
+                throw e;
+            }
+        }
+
+        // Test promise rejection handling
+        const rejectingMethod = new ValidatedMethod({
+            shouldFail: 'boolean'
+        }, opts => opts.shouldFail ? Promise.reject(new Error('Expected failure')) : Promise.resolve('OK'));
+
+        try {
+            await rejectingMethod({ shouldFail: true });
+            throw new Error('Should have rejected');
+        } catch (e) {
+            if (e.message === 'Expected failure') {
+                console.log('✓ Promise rejection test passed');
+            } else {
+                throw e;
+            }
+        }
+
+    } catch (e) {
+        console.error('✗ Async tests failed:', e.message);
+    }
+}
+
+// Run async tests
+runAsyncTests();

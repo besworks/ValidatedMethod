@@ -10,6 +10,7 @@ Provides runtime type checking for JavaScript function parameters similar to Typ
 - Custom type support
 - Extra parameter warnings
 - Easy to integrate
+- Supports async/await or Promsie chaining
 
 ## Usage
 
@@ -38,8 +39,8 @@ class UserService {
 - `'boolean'` - Booleans with coercion (uses `Boolean()`)
 - `'object'` - Object literals
 - `'array'` - Arrays (uses `Array.isArray()`)
-- `'any'` - Any type including null, except undefined
-- `'optional'` - Optional parameter (can be undefined)
+- `'any'` - Any type including `null`, except `undefined`
+- `'optional'` - Optional parameter (can be `undefined`)
 
 ### Number Types
 - `'int'` - Integers with truncating coercion (uses `parseInt()`)
@@ -61,7 +62,7 @@ class CustomType {
 }
 
 const method = new ValidatedMethod({
-    instance: CustomType,           // Must be instance of CustomType
+    instance: CustomType,          // Must be instance of CustomType
     mixed: [CustomType, 'object']  // Can be CustomType or plain object
 }, (opts) => {
     // Implementation
@@ -85,8 +86,8 @@ method({
 
 ### Quiet Mode
 ```javascript
+ValidatedMethod.quiet = true;  // Suppress unexpected parameter warnings
 const method = new ValidatedMethod({...}, callback);
-method.quiet = true;  // Suppress unexpected parameter warnings
 ```
 
 ## Error Handling
