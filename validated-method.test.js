@@ -292,7 +292,7 @@ try {
 try {
     const functionMethod = new ValidatedMethod({
         callback: 'function',
-        optionalFn: ['function', 'undefined']
+        optionalFn: ['function', 'optional']
     }, opts => opts.callback());
 
     // Test valid function
@@ -434,3 +434,123 @@ async function runAsyncTests() {
 
 // Run async tests
 runAsyncTests();
+
+// Test: Multiple Types and Optional Aliases
+try {
+    const multiTypeMethod = new ValidatedMethod({
+        optionalString1: ['string', 'optional'],
+        optionalString2: ['string', 'undefined'],
+        optionalNumber1: ['number', 'optional'],
+        optionalNumber2: ['number', 'undefined'],
+        requiredStringOrNumber: ['string', 'number']
+    }, opts => opts);
+
+    // Test with all parameters
+    const result1 = multiTypeMethod({
+        optionalString1: 'test1',
+        optionalString2: 'test2',
+        optionalNumber1: 42,
+        optionalNumber2: 43,
+        requiredStringOrNumber: 'test'
+    });
+
+    // Test with omitted optional parameters
+    const result2 = multiTypeMethod({
+        requiredStringOrNumber: 44
+    });
+
+    // Test with undefined optional parameters
+    const result3 = multiTypeMethod({
+        optionalString1: undefined,
+        optionalString2: undefined,
+        optionalNumber1: undefined,
+        optionalNumber2: undefined,
+        requiredStringOrNumber: 'test'
+    });
+
+    console.assert(
+        result1.optionalString1 === 'test1' &&
+        result1.optionalString2 === 'test2' &&
+        result1.optionalNumber1 === 42 &&
+        result1.optionalNumber2 === 43 &&
+        result1.requiredStringOrNumber === 'test' &&
+        result2.optionalString1 === undefined &&
+        result2.optionalString2 === undefined &&
+        result2.optionalNumber1 === undefined &&
+        result2.optionalNumber2 === undefined &&
+        result2.requiredStringOrNumber === 44 &&
+        result3.optionalString1 === undefined &&
+        result3.optionalString2 === undefined &&
+        result3.optionalNumber1 === undefined &&
+        result3.optionalNumber2 === undefined &&
+        result3.requiredStringOrNumber === 'test',
+        'Multiple types and optional aliases validation failed'
+    );
+
+    // Test required multi-type parameter
+    multiTypeMethod({
+        requiredStringOrNumber: 42  // number should work
+    });
+    multiTypeMethod({
+        requiredStringOrNumber: 'test'  // string should work
+    });
+
+    console.log('✓ Multiple types and optional aliases test passed');
+} catch (e) {
+    console.error('✗ Multiple types and optional aliases test failed:', e.message);
+}
+
+// Test: Null Value Handling
+try {
+    const nullableMethod = new ValidatedMethod({
+        nullableString: ['string', 'null'],
+        nullableNumber: ['number', 'null'],
+        nonNullable: 'string',
+        optionalNullable: ['string', 'null', 'optional']
+    }, opts => opts);
+
+    // Test with null values
+    const result1 = nullableMethod({
+        nullableString: null,
+        nullableNumber: null,
+        nonNullable: 'required'
+    });
+
+    // Test with mixture of null and valid values
+    const result2 = nullableMethod({
+        nullableString: 'test',
+        nullableNumber: 42,
+        nonNullable: 'required',
+        optionalNullable: null
+    });
+
+    // Verify null handling
+    console.assert(
+        result1.nullableString === null &&
+        result1.nullableNumber === null &&
+        result1.nonNullable === 'required' &&
+        result1.optionalNullable === undefined &&
+        result2.nullableString === 'test' &&
+        result2.nullableNumber === 42 &&
+        result2.optionalNullable === null,
+        'Null value handling failed'
+    );
+
+    // Test null rejection on non-nullable field
+    try {
+        nullableMethod({
+            nullableString: null,
+            nullableNumber: null,
+            nonNullable: null  // Should fail
+        });
+        throw new Error('Should have rejected null for non-nullable field');
+    } catch (e) {
+        if (!e.message.includes('Expected string')) {
+            throw new Error('Wrong error type for null validation');
+        }
+    }
+
+    console.log('✓ Null value handling test passed');
+} catch (e) {
+    console.error('✗ Null value handling test failed:', e.message);
+}

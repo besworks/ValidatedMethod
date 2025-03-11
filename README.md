@@ -24,8 +24,8 @@ class UserService {
         active: 'boolean',
         roles: 'array',
         settings: 'object',
-        email: ['string', 'null'],
-        birthday: 'optional',
+        email: 'string',
+        birthday: ['string', 'optional']
         title: 'string'
     }, async (opts) => {
         // Parameters are validated, safe to use
@@ -41,7 +41,7 @@ myService.createUser({
     active: true,
     roles: [ 'user', 'editor' ],
     settings: { darkmode: 'auto' },
-    email: null,
+    email: 'goober@test.ing',
     // birthday: is optional so undefined is ok
     // Throw TypeError because title: is undefined
 });
@@ -52,12 +52,11 @@ myService.createUser({
 
 ### Basic Types
 - `'string'` - String values
-- `'boolean'` - Booleans with coercion (uses `Boolean()`)
+- `'boolean'` - Truthy/Falsey values coerced using `Boolean()`
 - `'object'` - Object literals
-- `'array'` - Arrays (uses `Array.isArray()`)
+- `'array'` - Arrays of any length including 0
 - `'function'` - Executable functions
-- `'any'` - Any type including `null`, except `undefined`
-- `'optional'` - Optional parameter (can be `undefined`)
+- `'null'` - Empty values
 
 ### Number Types
 - `'int'` - Integers with truncating coercion (uses `parseInt()`)
@@ -67,8 +66,11 @@ myService.createUser({
 - `'float'` - Floating point numbers with coercion (uses `parseFloat()`)
 - `'strictfloat'` - Floating point numbers without coercion
 
-### Strict Boolean
-- `'strictboolean'` - Booleans without coercion
+### Special Types
+- `'any'` - Any value including `null`, except `undefined`
+- `'undefined'` - Alias of `'optional'`
+- `'optional'` - Value can be `undefined`
+- `'strictboolean'` - Booleans only without coercion
 
 ### Custom Types
 ```javascript

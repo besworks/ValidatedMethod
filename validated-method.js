@@ -45,6 +45,26 @@ export class ValidatedMethod {
         for (const [key, validator] of Object.entries(schema)) {
             const value = opts[key];
 
+            // Handle array-based validators
+            if (Array.isArray(validator)) {
+                // Allow undefined if optional/undefined is in validators
+                if (value === undefined && 
+                    (validator.includes('optional') || validator.includes('undefined'))) {
+                    continue;
+                }
+                
+                // Skip null values
+                if (value === null) continue;
+
+                // For non-undefined values, check against allowed types
+                // Filter out optional/undefined from type check
+                const types = validator.filter(v => v !== 'optional' && v !== 'undefined');
+                if (!types.includes(typeof value)) {
+                    throw new TypeError(`Expected one of [${types}], got ${typeof value} for ${key}`);
+                }
+                continue;
+            }
+
             // Check optional first
             if (validator === 'optional') {
                 continue;
