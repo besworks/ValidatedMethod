@@ -42,7 +42,7 @@ myService.createUser({
     roles: [ 'user', 'editor' ],
     settings: { darkmode: 'auto' },
     email: null,
-    // birthday is optional so undefined is ok
+    // birthday: is optional so undefined is ok
     // Throw TypeError because title: is undefined
 });
 
@@ -102,8 +102,8 @@ method({
 
 ### Quiet Mode
 ```javascript
-ValidatedMethod.quiet = true;  // Suppress unexpected parameter warnings
-const method = new ValidatedMethod({...}, callback);
+ValidatedMethod.quiet = true; // Suppress unexpected parameter warnings
+const method = new ValidatedMethod({...bigObj}, callback);
 ```
 
 ## Error Handling

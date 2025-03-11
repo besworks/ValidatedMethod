@@ -1,12 +1,14 @@
 export class ValidatedMethod {
     #callback = () => {};
     #args = {};
-    #quiet = false;
 
-    get quiet() {
+    static #quiet = false;
+
+    static get quiet() {
         return this.#quiet;
     }
-    set quiet(value) {
+
+    static set quiet(value) {
         this.#quiet = !!value;
     }
 
@@ -34,7 +36,7 @@ export class ValidatedMethod {
         // Check for extra parameters first
         for (const key of Object.keys(opts)) {
             if (!schema.hasOwnProperty(key)) {
-                if (this.#quiet) continue;
+                if (ValidatedMethod.quiet) continue;
                 console.warn(`Unexpected parameter: ${key}`);
             }
         }

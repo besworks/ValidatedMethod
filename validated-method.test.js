@@ -228,9 +228,8 @@ try {
     console.error('✗ Integer rounding test failed:', e.message);
 }
 
-// Test 7: Unexpected Parameters
+// Test 7a: Unexpected Parameters
 try {
-    // Capture console.warn output
     const warnings = [];
     const originalWarn = console.warn;
     console.warn = (msg) => warnings.push(msg);
@@ -245,18 +244,48 @@ try {
         unexpected2: 42
     });
 
-    // Restore console.warn
     console.warn = originalWarn;
 
     console.assert(
         warnings.length === 2 &&
         warnings[0].includes('Unexpected parameter: unexpected1') &&
-        warnings[1].includes('Unexpected parameter: unexpected2'),
+        warnings[1].includes('Unexpected parameter: unexpected2') &&
+        result.expected === 'value',
         'Unexpected parameter warnings failed'
     );
     console.log('✓ Unexpected parameters test passed');
 } catch (e) {
     console.error('✗ Unexpected parameters test failed:', e.message);
+}
+
+// Test 7b: Quiet Mode
+try {
+    const warnings = [];
+    const originalWarn = console.warn;
+    console.warn = (msg) => warnings.push(msg);
+
+    const quietParams = new ValidatedMethod({
+        expected: 'string'
+    }, opts => opts);
+
+    ValidatedMethod.quiet = true;
+    const result = quietParams({
+        expected: 'value',
+        unexpected1: true,
+        unexpected2: 42
+    });
+    ValidatedMethod.quiet = false;
+
+    console.warn = originalWarn;
+
+    console.assert(
+        warnings.length === 0 &&
+        result.expected === 'value',
+        'Quiet mode suppression failed'
+    );
+    console.log('✓ Quiet mode test passed');
+} catch (e) {
+    console.error('✗ Quiet mode test failed:', e.message);
 }
 
 // Test: Function Parameter Validation
