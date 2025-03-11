@@ -155,3 +155,51 @@ Throws a `TypeError` for validation failures:
 - Type mismatches
 - Coercion failures
 - Invalid custom type instances
+
+## Return Type Validation
+
+You can optionally specify a return type as the third parameter:
+
+```javascript
+// Ensure function returns a string
+const upperCase = new ValidatedMethod(
+    'string', str => str.toUpperCase(), 'string'
+);
+
+// Validate class instances
+// including custom and built in types
+const getUser = new ValidatedMethod(
+    'number',  id => db.findUser(id), User
+);
+
+const getNodes = new ValidatedMethod(
+    [ Node, 'string' ],  (el, q) => el.querySelectorAll(q), NodeList
+);
+
+// Allow multiple return types
+const getValue = new ValidatedMethod(
+    'string', key => cache.get(key), ['string', 'null']
+);
+
+// Explicit void return, must return undefined
+const logMessage = new ValidatedMethod(
+    'string', msg => { console.log(msg); }, 'void'
+);
+
+// Any non-undefined return, null allowed
+const process = new ValidatedMethod(
+    'object', data => processData(data), 'any'
+);
+```
+
+Return type validation supports:
+- All basic types (`string`, `number`, `boolean`, etc)
+- Custom classes (validates instanceof)
+- Regular expressions (tests string conversion)
+- Array of types for multiple options
+- Special types:
+  - `'void'` - Must return undefined
+  - `'any'` - Any value except undefined
+  - `'optional'` - Allows undefined returns
+
+If no return type is specified, the function can return any value including undefined.

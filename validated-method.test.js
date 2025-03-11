@@ -684,3 +684,113 @@ try {
 } catch (e) {
     console.error('✗ Array arguments test failed:', e.message);
 }
+
+// Test: Return Type Validation
+try {
+    const stringReturn = new ValidatedMethod(
+        ['number', 'number'],
+        (a, b) => a + b,
+        'string'  // Expect string return
+    );
+
+    try {
+        stringReturn(40, 2);  // Returns number, should fail
+        throw new Error('Should have failed return type validation');
+    } catch (e) {
+        if (!e.message.includes('does not match type string')) {
+            throw new Error('Wrong error type for return validation');
+        }
+    }
+
+    const numberOrString = new ValidatedMethod(
+        'string',
+        str => str.length,
+        ['number', 'string']  // Allow either type
+    );
+
+    console.assert(
+        typeof numberOrString('test') === 'number',
+        'Return type validation failed for multiple types'
+    );
+
+    // Test async return type
+    const asyncMethod = new ValidatedMethod(
+        'string',
+        async str => str.toUpperCase(),
+        'string'
+    );
+
+    asyncMethod('test').then(result => {
+        console.assert(
+            result === 'TEST',
+            'Async return type validation failed'
+        );
+    });
+
+    console.log('✓ Return type validation test passed');
+} catch (e) {
+    console.error('✗ Return type validation test failed:', e.message);
+}
+
+// Test: Return Type Edge Cases
+try {
+    // Test void requires undefined
+    const voidMethod = new ValidatedMethod(
+        'string',
+        str => undefined,
+        'void'
+    );
+    console.assert(
+        voidMethod('test') === undefined,
+        'Void return validation failed'
+    );
+
+    // Test void rejects values
+    const badVoidMethod = new ValidatedMethod(
+        'string',
+        str => 'not void',
+        'void'
+    );
+    try {
+        badVoidMethod('test');
+        throw new Error('Should reject non-void return');
+    } catch (e) {
+        if (!e.message.includes('does not match type void')) {
+            throw new Error('Wrong error for void validation');
+        }
+    }
+
+    // Test any allows everything except undefined
+    const anyMethod = new ValidatedMethod(
+        'string',
+        str => str === 'undefined' ? undefined : str,
+        'any'
+    );
+    try {
+        anyMethod('undefined');
+        throw new Error('Should reject undefined for any');
+    } catch (e) {
+        if (!e.message.includes('does not match type any')) {
+            throw new Error('Wrong error for any validation');
+        }
+    }
+    console.assert(
+        anyMethod('test') === 'test',
+        'Any return validation failed'
+    );
+
+    // Test undefined returnType allows everything
+    const unvalidatedMethod = new ValidatedMethod(
+        'string',
+        str => str === 'undefined' ? undefined : str
+    );
+    console.assert(
+        unvalidatedMethod('test') === 'test' &&
+        unvalidatedMethod('undefined') === undefined,
+        'Unvalidated return failed'
+    );
+
+    console.log('✓ Return type edge cases test passed');
+} catch (e) {
+    console.error('✗ Return type edge cases test failed:', e.message);
+}

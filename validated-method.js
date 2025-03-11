@@ -12,7 +12,7 @@ export class ValidatedMethod {
         this.#quiet = !!value;
     }
 
-    constructor(args, callback) {
+    constructor(args, callback, returnType) {
         // Handle string type or array of types for unnamed parameters
         if (typeof args === 'string' || Array.isArray(args)) {
             const types = Array.isArray(args) ? args : [args];
@@ -30,6 +30,22 @@ export class ValidatedMethod {
             this.#callback = callback;
         }
 
+        // Wrap callback to validate return type if specified
+        const wrappedCallback = returnType ? (opts) => {
+            const result = this.#callback(opts);
+            
+            // Handle Promise return types
+            if (result instanceof Promise) {
+                return result.then(value => {
+                    this.#validateReturn(value, returnType);
+                    return value;
+                });
+            }
+            
+            this.#validateReturn(result, returnType);
+            return result;
+        } : this.#callback;
+
         // Return a bound function that validates and calls
         return Object.assign(
             (...params) => {
@@ -37,20 +53,20 @@ export class ValidatedMethod {
                 if (this.#args._isArraySchema) {
                     const opts = { _values: params };
                     if (this.#validate(opts, this.#args)) {
-                        return this.#callback(opts);
+                        return wrappedCallback(opts);
                     }
                 }
                 // Handle single parameter case
                 else if (typeof this.#args.value === 'string' && Object.keys(this.#args).length === 1) {
                     const opts = { value: params[0] };
                     if (this.#validate(opts, this.#args)) {
-                        return this.#callback(opts);
+                        return wrappedCallback(opts);
                     }
                 }
                 // Handle original object case
                 else {
                     if (this.#validate(params[0], this.#args)) {
-                        return this.#callback(params[0]);
+                        return wrappedCallback(params[0]);
                     }
                 }
             },
@@ -192,5 +208,74 @@ export class ValidatedMethod {
             }
         }
         return true;
+    }
+
+    #validateReturn(value, type) {
+        if (Array.isArray(type)) {
+            // Handle array of allowed types
+            const types = type.filter(t => t !== 'optional' && t !== 'undefined');
+            if (value === undefined && type.includes('optional')) return;
+            if (value === null && type.includes('null')) return;
+            if (!types.some(t => this.#checkType(value, t))) {
+                throw new TypeError(`Return value ${value} does not match any of [${types}]`);
+            }
+        } else {
+            // Handle single type
+            if (!this.#checkType(value, type)) {
+                const typeName = typeof type === 'function' ? type.name : type;
+                throw new TypeError(`Return value ${value} does not match type ${typeName}`);
+            }
+        }
+    }
+
+    #checkType(value, type) {
+        // Special handling for void type
+        if (type === 'void') {
+            return value === undefined;
+        }
+        
+        // Special handling for undefined type
+        if (type === 'undefined') {
+            return value === undefined;
+        }
+
+        // All non-void types should reject undefined
+        if (value === undefined) {
+            return false;
+        }
+
+        // Handle any type - allows everything except undefined
+        if (type === 'any') {
+            return true;
+        }
+
+        if (type === 'array') return Array.isArray(value);
+        if (typeof type === 'function') return value instanceof type;
+        if (type === 'strictboolean') return typeof value === 'boolean';
+        if (type === 'boolean') return typeof value === 'boolean' || [0,1,'true','false'].includes(value);
+        if (['int', 'roundint', 'strictint'].includes(type)) {
+            try {
+                this.#validateInteger(value, 'return', type);
+                return true;
+            } catch {
+                return false;
+            }
+        }
+        if (['number', 'float', 'strictfloat'].includes(type)) {
+            try {
+                this.#validateNumber(value, 'return', type === 'strictfloat');
+                return true;
+            } catch {
+                return false;
+            }
+        }
+        if (type instanceof RegExp) {
+            try {
+                return type.test(String(value));
+            } catch {
+                return false;
+            }
+        }
+        return typeof value === type;
     }
 }
