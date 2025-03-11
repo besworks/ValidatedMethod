@@ -58,42 +58,47 @@ export class ValidatedMethod {
         );
     }
 
-    #validate(opts, schema) {
-        // Handle array schema validation
-        if (schema._isArraySchema) {
-            const values = opts._values;
-            const types = schema._values;
+    #validateNumber(value, key, strict = false) {
+        if (strict && typeof value !== 'number') {
+            throw new TypeError(`Expected number, got ${typeof value} for ${key}`);
+        }
+        const num = parseFloat(value);
+        if (isNaN(num)) {
+            throw new TypeError(`Cannot convert ${value} to number for ${key}`);
+        }
+        return num;
+    }
+
+    #validateInteger(value, key, type) {
+        const num = this.#validateNumber(value, key, type === 'strictint');
+        if (type === 'strictint' && !Number.isInteger(num)) {
+            throw new TypeError(`Expected integer, got ${num} for ${key}`);
+        }
+        return type === 'roundint' ? Math.round(num) : Math.floor(num);
+    }
+
+    #validateArrayTypes(values, types) {
+        if (values.length < types.length) {
+            throw new TypeError(`Expected ${types.length} arguments, got ${values.length}`);
+        }
+
+        types.forEach((type, index) => {
+            let value = values[index];
             
-            if (values.length < types.length) {
-                throw new TypeError(`Expected ${types.length} arguments, got ${values.length}`);
+            if (['int', 'roundint', 'strictint'].includes(type)) {
+                values[index] = this.#validateInteger(value, `Argument ${index}`, type);
+                return;
             }
+            
+            if (typeof type === 'string' && typeof value !== type) {
+                throw new TypeError(`Argument ${index}: Expected ${type}, got ${typeof value}`);
+            }
+        });
+    }
 
-            types.forEach((type, index) => {
-                let value = values[index];
-                
-                // Handle special number types
-                if (type === 'int' || type === 'roundint' || type === 'strictint') {
-                    if (typeof value !== 'number') {
-                        if (isNaN(value)) {
-                            throw new TypeError(`Argument ${index}: Cannot convert to number`);
-                        }
-                        value = Number(value);
-                    }
-                    
-                    if (type === 'strictint' && !Number.isInteger(value)) {
-                        throw new TypeError(`Argument ${index}: Expected integer, got ${value}`);
-                    }
-                    
-                    values[index] = type === 'roundint' ? Math.round(value) : Math.floor(value);
-                    return;
-                }
-                
-                // Original type checking
-                if (typeof type === 'string' && typeof value !== type) {
-                    throw new TypeError(`Argument ${index}: Expected ${type}, got ${typeof value}`);
-                }
-            });
-
+    #validate(opts, schema) {
+        if (schema._isArraySchema) {
+            this.#validateArrayTypes(opts._values, schema._values);
             return true;
         }
 
@@ -166,32 +171,10 @@ export class ValidatedMethod {
                 }
             } else if (validator === 'boolean') {
                 opts[key] = Boolean(value);  // Coerce to boolean
-            } else if (validator === 'strictint') {
-                if (typeof value !== 'number' || !Number.isInteger(value)) {
-                    throw new TypeError(`Expected integer, got ${value} for ${key}`);
-                }
-            } else if (validator === 'int') {
-                const int = parseInt(value);
-                if (isNaN(int)) {
-                    throw new TypeError(`Cannot convert ${value} to integer for ${key}`);
-                }
-                opts[key] = int;  // Coerce to integer
-            } else if (validator === 'roundint') {
-                const float = parseFloat(value);
-                if (isNaN(float)) {
-                    throw new TypeError(`Cannot convert ${value} to integer for ${key}`);
-                }
-                opts[key] = Math.round(float); // Coerce to rounded integer
-            } else if (validator === 'strictfloat') {
-                if (typeof value !== 'number') {
-                    throw new TypeError(`Expected number, got ${typeof value} for ${key}`);
-                }
-            } else if (validator === 'float' || validator === 'number') {
-                const float = parseFloat(value);
-                if (isNaN(float)) {
-                    throw new TypeError(`Cannot convert ${value} to float for ${key}`);
-                }
-                opts[key] = float;  // Coerce to float
+            } else if (validator === 'strictint' || validator === 'int' || validator === 'roundint') {
+                opts[key] = this.#validateInteger(value, key, validator);
+            } else if (validator === 'strictfloat' || validator === 'float' || validator === 'number') {
+                opts[key] = this.#validateNumber(value, key, validator === 'strictfloat');
             } else if (typeof validator === 'string' && typeof value !== validator) {
                 throw new TypeError(`Expected ${validator}, got ${typeof value} for ${key}`);
             } else if (validator instanceof RegExp) {
