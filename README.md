@@ -5,12 +5,12 @@ Provides runtime type checking for JavaScript function parameters similar to Typ
 - Zero dependencies
 - TypeScript-like parameter validation in pure JavaScript
 - Coercion options for numbers and booleans
-- Async/Promise support
-- Clean, declarative syntax
 - Custom type support
 - Extra parameter warnings
+- Clean, declarative syntax
 - Easy to integrate
-- Supports async/await or Promsie chaining
+- Supports async / Promsie chaining
+- Full test suite included
 
 ## Usage
 
