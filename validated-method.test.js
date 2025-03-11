@@ -615,3 +615,72 @@ try {
 } catch (e) {
     console.error('✗ Regex validation test failed:', e.message);
 }
+
+// Test: Single Parameter Support
+try {
+    const stringOnly = new ValidatedMethod('string', value => value.toUpperCase());
+    const numberOnly = new ValidatedMethod('number', value => value * 2);
+    
+    // Test direct parameter passing
+    const str = stringOnly('test');
+    const num = numberOnly(21);
+    
+    console.assert(
+        str === 'TEST' &&
+        num === 42,
+        'Single parameter validation failed'
+    );
+
+    // Test type validation
+    try {
+        stringOnly(42);
+        throw new Error('Should have failed type validation');
+    } catch (e) {
+        if (!e.message.includes('Expected string')) {
+            throw new Error('Wrong error type for single parameter validation');
+        }
+    }
+
+    console.log('✓ Single parameter test passed');
+} catch (e) {
+    console.error('✗ Single parameter test failed:', e.message);
+}
+
+// Test: Array Arguments
+try {
+    const add = new ValidatedMethod(['number', 'number'], (a, b) => a + b);
+    const concat = new ValidatedMethod(['string', 'string', 'string'], (a, b, c) => a + b + c);
+    
+    const sum = add(40, 2);
+    const str = concat('Hello', ' ', 'World');
+    
+    console.assert(
+        sum === 42 &&
+        str === 'Hello World',
+        'Array arguments validation failed'
+    );
+
+    // Test argument count
+    try {
+        add(1);
+        throw new Error('Should have failed argument count validation');
+    } catch (e) {
+        if (!e.message.includes('Expected 2 arguments')) {
+            throw new Error('Wrong error type for argument count validation');
+        }
+    }
+
+    // Test type validation
+    try {
+        add('not', 'numbers');
+        throw new Error('Should have failed type validation');
+    } catch (e) {
+        if (!e.message.includes('Expected number')) {
+            throw new Error('Wrong error type for argument type validation');
+        }
+    }
+
+    console.log('✓ Array arguments test passed');
+} catch (e) {
+    console.error('✗ Array arguments test failed:', e.message);
+}

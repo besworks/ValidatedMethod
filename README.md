@@ -4,11 +4,12 @@ Provides runtime type checking for JavaScript function parameters similar to Typ
 ## Features
 - Zero dependencies
 - TypeScript-like parameter validation in pure JavaScript
+- Named, single, and positional parameter support
 - Coercion options for numbers and booleans
+- RegExp validation for strings
 - Custom type support
 - Extra parameter warnings
-- Clean, declarative syntax
-- Easy to integrate
+- Easy to integrate with intuitive syntax
 - Supports async / Promsie chaining
 - Full test suite included
 
@@ -72,6 +73,7 @@ myService.createUser({
 - `'optional'` - Value can be `undefined`
 - `'strictboolean'` - Booleans only without coercion
 - `/^test$/ig` - Regular Expression literal (without quotes, uses `toString()`)
+- `ClassName` - Class comparison (using `instanceof`)
 
 ### Custom Types
 ```javascript
@@ -108,6 +110,42 @@ method({
 ```javascript
 ValidatedMethod.quiet = true; // Suppress unexpected parameter warnings
 const method = new ValidatedMethod({...bigObj}, callback);
+```
+
+## Parameter Styles
+
+### Named Parameters
+```javascript
+const method = new ValidatedMethod({
+    name: 'string',
+    age: 'number'
+}, opts => `${opts.name} is ${opts.age}`);
+
+method({ name: 'Test', age: 42 });
+```
+
+### Single Parameter
+```javascript
+const $ = new ValidatedMethod('string', query => 
+    document.querySelector(query)
+);
+
+$('.my-element'); // Returns element or null
+```
+
+### Positional Parameters
+```javascript
+const add = new ValidatedMethod(
+    ['number', 'number'], (a, b) => a + b
+);
+
+add(40, 2); // Returns 42
+
+const delayed = new ValidatedMethod(
+    ['int', 'function'], (ms, callback) => setTimeout(callback, ms)
+);
+
+delayed(1000, () => console.log('Done!')); 
 ```
 
 ## Error Handling

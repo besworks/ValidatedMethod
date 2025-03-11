@@ -13,19 +13,45 @@ export class ValidatedMethod {
     }
 
     constructor(args, callback) {
-        if (typeof args !== 'object') {
-            throw new TypeError('Arguments must be an object');
-        } this.#args = args;
-
-        if (typeof callback !== 'function') {
-            throw new TypeError('Callback must be a function');
-        } this.#callback = callback;
+        // Handle string type or array of types for unnamed parameters
+        if (typeof args === 'string' || Array.isArray(args)) {
+            const types = Array.isArray(args) ? args : [args];
+            this.#args = { 
+                _values: types,
+                _isArraySchema: true 
+            };
+            this.#callback = (opts) => callback(...opts._values);
+        } else {
+            // Original object parameter case
+            if (typeof args !== 'object') {
+                throw new TypeError('Arguments must be an object, string type, or array of types');
+            }
+            this.#args = args;
+            this.#callback = callback;
+        }
 
         // Return a bound function that validates and calls
         return Object.assign(
-            (opts) => {
-                if (this.#validate(opts, this.#args)) {
-                    return this.#callback(opts);
+            (...params) => {
+                // Handle array schema case
+                if (this.#args._isArraySchema) {
+                    const opts = { _values: params };
+                    if (this.#validate(opts, this.#args)) {
+                        return this.#callback(opts);
+                    }
+                }
+                // Handle single parameter case
+                else if (typeof this.#args.value === 'string' && Object.keys(this.#args).length === 1) {
+                    const opts = { value: params[0] };
+                    if (this.#validate(opts, this.#args)) {
+                        return this.#callback(opts);
+                    }
+                }
+                // Handle original object case
+                else {
+                    if (this.#validate(params[0], this.#args)) {
+                        return this.#callback(params[0]);
+                    }
                 }
             },
             { originalMethod: this }
@@ -33,6 +59,44 @@ export class ValidatedMethod {
     }
 
     #validate(opts, schema) {
+        // Handle array schema validation
+        if (schema._isArraySchema) {
+            const values = opts._values;
+            const types = schema._values;
+            
+            if (values.length < types.length) {
+                throw new TypeError(`Expected ${types.length} arguments, got ${values.length}`);
+            }
+
+            types.forEach((type, index) => {
+                let value = values[index];
+                
+                // Handle special number types
+                if (type === 'int' || type === 'roundint' || type === 'strictint') {
+                    if (typeof value !== 'number') {
+                        if (isNaN(value)) {
+                            throw new TypeError(`Argument ${index}: Cannot convert to number`);
+                        }
+                        value = Number(value);
+                    }
+                    
+                    if (type === 'strictint' && !Number.isInteger(value)) {
+                        throw new TypeError(`Argument ${index}: Expected integer, got ${value}`);
+                    }
+                    
+                    values[index] = type === 'roundint' ? Math.round(value) : Math.floor(value);
+                    return;
+                }
+                
+                // Original type checking
+                if (typeof type === 'string' && typeof value !== type) {
+                    throw new TypeError(`Argument ${index}: Expected ${type}, got ${typeof value}`);
+                }
+            });
+
+            return true;
+        }
+
         // Check for extra parameters first
         for (const key of Object.keys(opts)) {
             if (!schema.hasOwnProperty(key)) {
