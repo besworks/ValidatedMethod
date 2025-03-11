@@ -9,6 +9,7 @@ Provides runtime type checking for JavaScript function parameters similar to Typ
 - RegExp validation for strings
 - Custom type support
 - Extra parameter warnings
+- Optional return type validation
 - Easy to integrate with intuitive syntax
 - Supports async / Promsie chaining
 - Full test suite included

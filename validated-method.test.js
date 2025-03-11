@@ -794,3 +794,74 @@ try {
 } catch (e) {
     console.error('✗ Return type edge cases test failed:', e.message);
 }
+
+// Add after Return Type Edge Cases test
+
+// Test: Async Return Type Validation
+async function runAsyncReturnTests() {
+    try {
+        // Test async string return
+        const asyncString = new ValidatedMethod(
+            'string',
+            async str => str.toUpperCase(),
+            'string'
+        );
+        
+        const strResult = await asyncString('test');
+        console.assert(
+            strResult === 'TEST',
+            'Async string return validation failed'
+        );
+
+        // Test async with multiple allowed return types
+        const asyncMulti = new ValidatedMethod(
+            'number',
+            async n => n > 10 ? String(n) : n,
+            ['string', 'number']
+        );
+
+        const multiResult1 = await asyncMulti(42);
+        const multiResult2 = await asyncMulti(5);
+        console.assert(
+            typeof multiResult1 === 'string' &&
+            typeof multiResult2 === 'number',
+            'Async multiple return types validation failed'
+        );
+
+        // Test async void return
+        const asyncVoid = new ValidatedMethod(
+            'string',
+            async str => { await Promise.resolve(); },
+            'void'
+        );
+        
+        const voidResult = await asyncVoid('test');
+        console.assert(
+            voidResult === undefined,
+            'Async void return validation failed'
+        );
+
+        // Test async return type failure
+        const asyncFail = new ValidatedMethod(
+            'string',
+            async () => 42,
+            'string'
+        );
+
+        try {
+            await asyncFail('test');
+            throw new Error('Should have failed async return validation');
+        } catch (e) {
+            if (!e.message.includes('does not match type string')) {
+                throw new Error('Wrong error type for async return validation');
+            }
+        }
+
+        console.log('✓ Async return type validation test passed');
+    } catch (e) {
+        console.error('✗ Async return type validation test failed:', e.message);
+    }
+}
+
+// Run async return tests
+runAsyncReturnTests();
