@@ -55,6 +55,7 @@ myService.createUser({
 - `'boolean'` - Booleans with coercion (uses `Boolean()`)
 - `'object'` - Object literals
 - `'array'` - Arrays (uses `Array.isArray()`)
+- `'function'` - Executable functions
 - `'any'` - Any type including `null`, except `undefined`
 - `'optional'` - Optional parameter (can be `undefined`)
 
@@ -62,8 +63,8 @@ myService.createUser({
 - `'int'` - Integers with truncating coercion (uses `parseInt()`)
 - `'roundint'` - Integers with rounding coercion (uses `Math.round()`)
 - `'strictint'` - Integers without coercion
-- `'float'` - Floating point numbers with coercion (uses `parseFloat()`)
 - `'number'` - Alias of `'float'`
+- `'float'` - Floating point numbers with coercion (uses `parseFloat()`)
 - `'strictfloat'` - Floating point numbers without coercion
 
 ### Strict Boolean
