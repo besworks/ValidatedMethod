@@ -24,12 +24,28 @@ class UserService {
         active: 'boolean',
         roles: 'array',
         settings: 'object',
-        email: ['string', 'null']
+        email: ['string', 'null'],
+        birthday: 'optional',
+        title: 'string'
     }, async (opts) => {
         // Parameters are validated, safe to use
         return await db.users.create(opts);
     });
 }
+
+const myService = new UserService();
+
+myService.createUser({
+    username: 'goober',
+    age: 40,
+    active: true,
+    roles: [ 'user', 'editor' ],
+    settings: { darkmode: 'auto' },
+    email: null,
+    // birthday is optional so undefined is ok
+    // Throw TypeError because title: is undefined
+});
+
 ```
 
 ## Type Validation
