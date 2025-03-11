@@ -130,6 +130,18 @@ export class ValidatedMethod {
                 opts[key] = float;  // Coerce to float
             } else if (typeof validator === 'string' && typeof value !== validator) {
                 throw new TypeError(`Expected ${validator}, got ${typeof value} for ${key}`);
+            } else if (validator instanceof RegExp) {
+                // Handle unconvertible values first
+                if (typeof value === 'symbol') {
+                    throw new TypeError(`Cannot convert Symbol to string for ${key}`);
+                }
+                
+                // Convert to string and test against regex
+                const str = String(value);
+                if (!validator.test(str)) {
+                    throw new TypeError(`Value "${str}" does not match pattern ${validator} for ${key}`);
+                }
+                opts[key] = str; // Store converted value
             }
         }
         return true;

@@ -554,3 +554,64 @@ try {
 } catch (e) {
     console.error('✗ Null value handling test failed:', e.message);
 }
+
+// Test: Regex Validation
+try {
+    const regexMethod = new ValidatedMethod({
+        email: /^[^@]+@[^@]+\.[^@]+$/,
+        phone: /^\d{3}-\d{3}-\d{4}$/,
+        code: /^[A-Z]{2}\d{4}$/,
+        coercible: /^\d+$/
+    }, opts => opts);
+
+    // Test valid values
+    const result = regexMethod({
+        email: 'test@example.com',
+        phone: '555-123-4567',
+        code: 'AB1234',
+        coercible: 42
+    });
+
+    console.assert(
+        result.email === 'test@example.com' &&
+        result.phone === '555-123-4567' &&
+        result.code === 'AB1234' &&
+        result.coercible === '42',
+        'Regex validation failed'
+    );
+
+    // Test invalid values
+    try {
+        regexMethod({
+            email: 'invalid-email',
+            phone: '555-123-4567',
+            code: 'AB1234',
+            coercible: '42'
+        });
+        throw new Error('Should have failed email validation');
+    } catch (e) {
+        if (!e.message.includes('does not match pattern')) {
+            throw new Error('Wrong error type for regex validation');
+        }
+    }
+
+    // Test unconvertible value
+    const symbol = Symbol('test');
+    try {
+        regexMethod({
+            email: symbol,  // Symbols can't be converted to strings
+            phone: '555-123-4567',
+            code: 'AB1234',
+            coercible: '42'
+        });
+        throw new Error('Should have failed conversion');
+    } catch (e) {
+        if (!e.message.includes('Cannot convert Symbol')) {
+            throw new Error(`Wrong error type for conversion failure: ${e.message}`);
+        }
+    }
+
+    console.log('✓ Regex validation test passed');
+} catch (e) {
+    console.error('✗ Regex validation test failed:', e.message);
+}

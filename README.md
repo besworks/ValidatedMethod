@@ -24,7 +24,7 @@ class UserService {
         active: 'boolean',
         roles: 'array',
         settings: 'object',
-        email: 'string',
+        email: /^[^@]+@[^@]+\.[^@]+$/,
         birthday: ['string', 'optional']
         title: 'string'
     }, async (opts) => {
@@ -36,12 +36,12 @@ class UserService {
 const myService = new UserService();
 
 myService.createUser({
-    username: 'goober',
+    username: 'besworks',
     age: 40,
     active: true,
-    roles: [ 'user', 'editor' ],
+    roles: [ 'admin', 'wizard' ],
     settings: { darkmode: 'auto' },
-    email: 'goober@test.ing',
+    email: 'example@domain.tld',
     // birthday: is optional so undefined is ok
     // Throw TypeError because title: is undefined
 });
@@ -52,7 +52,7 @@ myService.createUser({
 
 ### Basic Types
 - `'string'` - String values
-- `'boolean'` - Truthy/Falsey values coerced using `Boolean()`
+- `'boolean'` - Truthy/Falsey values (coerced using `Boolean()`)
 - `'object'` - Object literals
 - `'array'` - Arrays of any length including 0
 - `'function'` - Executable functions
@@ -71,6 +71,7 @@ myService.createUser({
 - `'undefined'` - Alias of `'optional'`
 - `'optional'` - Value can be `undefined`
 - `'strictboolean'` - Booleans only without coercion
+- `/^test$/ig` - Regular Expression literal (without quotes, uses `toString()`)
 
 ### Custom Types
 ```javascript
