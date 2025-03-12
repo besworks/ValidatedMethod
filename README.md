@@ -76,6 +76,13 @@ myService.createUser({
 - `/^test$/ig` - Regular Expression literal (without quotes, uses `toString()`)
 - `ClassName` - Class comparison (using `instanceof`)
 
+### Import Alias
+The `_$` helper is provided for convenience but can be renamed on import if it conflicts with other libraries:
+
+```javascript
+import { ValidatedMethod, _$ as typeSafeMethod } from './validated-method.js';
+```
+
 ### Custom Types
 ```javascript
 class CustomType {
@@ -84,7 +91,8 @@ class CustomType {
     }
 }
 
-const method = new ValidatedMethod({
+
+const method = _$({
     instance: CustomType,          // Must be instance of CustomType
     mixed: [CustomType, 'object']  // Can be CustomType or plain object
 }, (opts) => {
@@ -97,7 +105,7 @@ const method = new ValidatedMethod({
 By default, ValidatedMethod warns about unexpected parameters:
 
 ```javascript
-const method = new ValidatedMethod({
+const method = _$({
     name: 'string'
 }, opts => opts);
 
@@ -117,10 +125,10 @@ const method = new ValidatedMethod({...bigObj}, callback);
 
 ### Named Parameters
 ```javascript
-const method = new ValidatedMethod({
-    name: 'string',
-    age: 'number'
-}, opts => `${opts.name} is ${opts.age}`);
+const method = _$(
+    { name: 'string', age: 'number' },
+    opts => `${opts.name} is ${opts.age}`
+);
 
 method({ name: 'Test', age: 42 });
 ```
@@ -128,27 +136,27 @@ method({ name: 'Test', age: 42 });
 ### Single Parameter
 ```javascript
 // Using type identifier
-const $ = new ValidatedMethod('string', query => 
+const $ = _$('string', query => 
     document.querySelector(query)
 );
 
 $('.my-element');
 
 // Using Custom class
-const process = new ValidatedMethod(
+const process = _$(
     CustomType, instance => instance.process()
 );
 ```
 
 ### Positional Parameters
 ```javascript
-const add = new ValidatedMethod(
+const add = _$(
     ['number', 'number'], (a, b) => a + b
 );
 
 add(40, 2); // Returns 42
 
-const delayed = new ValidatedMethod(
+const delayed = _$(
     ['int', 'function'], (ms, callback) => setTimeout(callback, ms)
 );
 
@@ -161,10 +169,10 @@ For functions that take no parameters, you can use any of these equivalent forms
 
 ```javascript
 // These all create a parameterless function that returns a number
-const fn1 = new ValidatedMethod(undefined, () => 42, 'number');
-const fn2 = new ValidatedMethod(null, () => 42, 'number');
-const fn3 = new ValidatedMethod('void', () => 42, 'number');
-const fn4 = new ValidatedMethod([], () => 42, 'number');
+const fn1 = _$(undefined, () => 42, 'number');
+const fn2 = _$(null, () => 42, 'number');
+const fn3 = _$('void', () => 42, 'number');
+const fn4 = _$([], () => 42, 'number');
 
 // Usage
 const result = fn1();  // Returns 42
@@ -185,32 +193,32 @@ You can optionally specify a return type as the third parameter:
 
 ```javascript
 // Ensure function returns a string
-const upperCase = new ValidatedMethod(
+const upperCase = _$(
     'string', str => str.toUpperCase(), 'string'
 );
 
 // Validate class instances
 // including custom and built in types
-const getUser = new ValidatedMethod(
+const getUser = _$(
     'number',  id => db.findUser(id), User
 );
 
-const getNodes = new ValidatedMethod(
+const getNodes = _$(
     [ Node, 'string' ],  (el, q) => el.querySelectorAll(q), NodeList
 );
 
 // Allow multiple return types
-const getValue = new ValidatedMethod(
+const getValue = _$(
     'string', key => cache.get(key), ['string', 'null']
 );
 
 // Explicit void return, must return undefined
-const logMessage = new ValidatedMethod(
+const logMessage = _$(
     'string', msg => { console.log(msg); }, 'void'
 );
 
 // Any non-undefined return, null allowed
-const process = new ValidatedMethod(
+const process = _$(
     'object', data => processData(data), 'any'
 );
 ```

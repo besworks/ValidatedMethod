@@ -309,3 +309,7 @@ export class ValidatedMethod {
         return typeof value === type;
     }
 }
+
+export function _$(a, c, r) {
+    return new ValidatedMethod(a, c, r);
+}
