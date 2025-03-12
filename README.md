@@ -75,6 +75,7 @@ myService.createUser({
 - `'strictboolean'` - Booleans only without coercion
 - `/^test$/ig` - Regular Expression literal (without quotes, uses `toString()`)
 - `ClassName` - Class comparison (using `instanceof`)
+- `(a) => a === b` - any declared or incline function can be used as a validator
 
 ### Import Alias
 The `_$` helper is provided for convenience but can be renamed on import if it conflicts with other libraries:
@@ -179,6 +180,25 @@ const result = fn1();  // Returns 42
 fn1(42);  // Throws: Expected 0 arguments, got 1
 ```
 
+### Custom Validators
+
+You can use functions as validators. They **must** be synchronous and return a truthy/falsey value.
+
+```javascript
+const isEven = n => n % 2 === 0;
+const getHalf = _$(isEven, num => num/2);
+getHalf(42); // Accepted input
+getHalf(43); // TypeError
+
+// declared inline
+const ref = 1;
+const getExact = _$(
+    a => a === ref,
+    num => num
+);
+```
+
+
 ## Error Handling
 Throws a `TypeError` for validation failures:
 
@@ -224,13 +244,11 @@ const process = _$(
 ```
 
 Return type validation supports:
-- All basic types (`string`, `number`, `boolean`, etc)
+- All input type identifiers (`'string'`, `'number'`, `'boolean'`, `'null'`, etc)
 - Custom classes (validates instanceof)
 - Regular expressions (tests string conversion)
 - Array of types for multiple options
 - Special types:
-  - `'void'` - Must return undefined
+  - `'void'|undefined` - Must return undefined
   - `'any'` - Any value except undefined
-  - `'optional'` - Allows undefined returns
-
-If no return type is specified, the function can return any value including undefined.
+  - `'optional'` - Included for completeness, this is the same as not specifying a return type. Return type is not checked.

@@ -123,8 +123,32 @@ export class ValidatedMethod {
         types.forEach((type, index) => {
             let value = values[index];
             
-            // Handle custom type (class constructor)
+            // Replace the validator function detection with:
             if (typeof type === 'function') {
+                // Check if it's a class constructor by testing if prototype is writable
+                const isClass = Object.getOwnPropertyDescriptor(type, 'prototype')?.writable === false;
+                
+                if (!isClass) {
+                    // Handle validator function - use truthy/falsey evaluation
+                    try {
+                        const result = type(value);
+                        
+                        // Handle potential async validator
+                        if (result instanceof Promise) {
+                            throw new TypeError('Validator functions must be synchronous');
+                        }
+                        
+                        // Use standard JavaScript truthy/falsy evaluation
+                        if (!result) {
+                            throw new TypeError(`Argument ${index}: Value "${value}" failed validation`);
+                        }
+                        return;
+                    } catch (e) {
+                        // Propagate validator errors with proper context
+                        throw new TypeError(`Validator failed: ${e.message}`);
+                    }
+                }
+                // Handle class constructor
                 if (!(value instanceof type)) {
                     throw new TypeError(`Argument ${index}: Expected ${type.name}, got ${value?.constructor?.name || typeof value}`);
                 }
@@ -209,6 +233,11 @@ export class ValidatedMethod {
                 if (!Array.isArray(value)) { 
                     throw new TypeError(`Expected Array, got ${typeof value} for ${key}`); 
                 }
+            } else if (typeof validator === 'function' && !validator.prototype) {
+                // Handle validator function
+                if (!validator(value)) {
+                    throw new TypeError(`Value "${value}" failed validation for ${key}`);
+                }
             } else if (typeof validator === 'function' && !(value instanceof validator)) {
                 throw new TypeError(`Expected instance of ${validator.name}, got ${typeof value} for ${key}`);
             } else if (validator === 'strictboolean') {
@@ -259,6 +288,20 @@ export class ValidatedMethod {
     }
 
     #checkType(value, type) {
+        // Add custom validator function support
+        if (typeof type === 'function' && !type.prototype) {
+            try {
+                return type(value) === true;
+            } catch (e) {
+                throw new TypeError(`Custom validator failed: ${e.message}`);
+            }
+        }
+        
+        // Handle class constructors
+        if (typeof type === 'function') {
+            return value instanceof type;
+        }
+
         // Special handling for void type
         if (type === 'void') {
             return value === undefined;
