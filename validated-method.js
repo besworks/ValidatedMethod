@@ -13,14 +13,26 @@ export class ValidatedMethod {
     }
 
     constructor(args, callback, returnType) {
-        // Handle string type or array of types for unnamed parameters
-        if (typeof args === 'string' || Array.isArray(args)) {
+        // Handle zero-parameter case
+        if (args === undefined || args === null || args === 'void' || 
+            (Array.isArray(args) && args.length === 0)) {
+            this.#args = { 
+                _values: [],
+                _isArraySchema: true 
+            };
+            this.#callback = (opts) => callback();
+        }
+        // Handle string type, array of types, or custom type for unnamed parameters
+        else if (typeof args === 'string' || Array.isArray(args) || typeof args === 'function') {
             const types = Array.isArray(args) ? args : [args];
             this.#args = { 
                 _values: types,
                 _isArraySchema: true 
             };
             this.#callback = (opts) => callback(...opts._values);
+        }
+        else if (typeof args !== 'object') {
+            throw new TypeError('Arguments must be an object, string type, array of types, or class constructor');
         } else {
             // Original object parameter case
             if (typeof args !== 'object') {
@@ -94,13 +106,31 @@ export class ValidatedMethod {
     }
 
     #validateArrayTypes(values, types) {
+        // Handle zero parameter case
+        if (types.length === 0) {
+            if (values.length > 0) {
+                throw new TypeError(`Expected 0 arguments, got ${values.length}`);
+            }
+            return;
+        }
+
+        // Check argument count
         if (values.length < types.length) {
             throw new TypeError(`Expected ${types.length} arguments, got ${values.length}`);
         }
 
+        // Validate each argument type
         types.forEach((type, index) => {
             let value = values[index];
             
+            // Handle custom type (class constructor)
+            if (typeof type === 'function') {
+                if (!(value instanceof type)) {
+                    throw new TypeError(`Argument ${index}: Expected ${type.name}, got ${value?.constructor?.name || typeof value}`);
+                }
+                return;
+            }
+
             if (['int', 'roundint', 'strictint'].includes(type)) {
                 values[index] = this.#validateInteger(value, `Argument ${index}`, type);
                 return;

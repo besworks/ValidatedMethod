@@ -127,11 +127,17 @@ method({ name: 'Test', age: 42 });
 
 ### Single Parameter
 ```javascript
+// Using type identifier
 const $ = new ValidatedMethod('string', query => 
     document.querySelector(query)
 );
 
-$('.my-element'); // Returns element or null
+$('.my-element');
+
+// Using Custom class
+const process = new ValidatedMethod(
+    CustomType, instance => instance.process()
+);
 ```
 
 ### Positional Parameters
@@ -147,6 +153,22 @@ const delayed = new ValidatedMethod(
 );
 
 delayed(1000, () => console.log('Done!')); 
+```
+
+## Zero Parameter Functions
+
+For functions that take no parameters, you can use any of these equivalent forms:
+
+```javascript
+// These all create a parameterless function that returns a number
+const fn1 = new ValidatedMethod(undefined, () => 42, 'number');
+const fn2 = new ValidatedMethod(null, () => 42, 'number');
+const fn3 = new ValidatedMethod('void', () => 42, 'number');
+const fn4 = new ValidatedMethod([], () => 42, 'number');
+
+// Usage
+const result = fn1();  // Returns 42
+fn1(42);  // Throws: Expected 0 arguments, got 1
 ```
 
 ## Error Handling
