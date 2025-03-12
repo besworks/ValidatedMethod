@@ -281,7 +281,9 @@ export class ValidatedMethod {
         } else {
             // Handle single type
             if (!this.#checkType(value, type)) {
-                const typeName = typeof type === 'function' ? type.name : type;
+                const typeName = typeof type === 'function' && !type.prototype 
+                    ? 'custom validator'
+                    : (typeof type === 'function' ? type.name : type);
                 throw new TypeError(`Return value ${value} does not match type ${typeName}`);
             }
         }

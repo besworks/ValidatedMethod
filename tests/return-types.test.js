@@ -225,3 +225,31 @@ try {
     console.error('✗ Zero parameter function test failed:', e.message);
 }
 
+// Test custom validator return type
+try {
+    const isPositive = n => typeof n === 'number' && n > 0;
+    const positiveReturn = new ValidatedMethod(
+        'string',
+        str => str.length,
+        isPositive
+    );
+
+    console.assert(
+        positiveReturn('test') === 4,
+        'Custom return validator failed for valid value'
+    );
+
+    try {
+        positiveReturn('');  // Returns 0, should fail validation
+        throw new Error('Should have failed custom return validation');
+    } catch (e) {
+        if (!e.message.includes('does not match type custom validator')) {
+            throw new Error('Wrong error for custom return validation');
+        }
+    }
+
+    console.log('✓ Custom return validator test passed');
+} catch (e) {
+    console.error('✗ Custom return validator test failed:', e.message);
+}
+

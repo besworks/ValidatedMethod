@@ -6,7 +6,7 @@ Provides runtime type checking for JavaScript function parameters similar to Typ
 - TypeScript-like parameter validation in pure JavaScript
 - Named, single, and positional parameter support
 - Coercion options for numbers and booleans
-- RegExp validation for strings
+- Regular Expression validation for strings
 - Custom type support
 - Extra parameter warnings
 - Optional return type validation
@@ -78,27 +78,32 @@ myService.createUser({
 - `(a) => a === b` - any declared or incline function can be used as a validator
 
 ### Import Alias
+
 The `_$` helper is provided for convenience but can be renamed on import if it conflicts with other libraries:
 
 ```javascript
-import { ValidatedMethod, _$ as typeSafeMethod } from './validated-method.js';
+import { _$ as VM } from './validated-method.js';
+const getData = VM('string', performLookupByName);
 ```
 
 ### Custom Types
 ```javascript
-class CustomType {
-    constructor(value) {
-        this.value = value;
-    }
+class Widget {
+    node = document.getElementById('widget')
+        ?? document.createElement('custom-widget');
 }
 
-
-const method = _$({
-    instance: CustomType,          // Must be instance of CustomType
-    mixed: [CustomType, 'object']  // Can be CustomType or plain object
+const configureWidget = _$({
+    widget: Widget,
+    className: 'string'
 }, (opts) => {
-    // Implementation
+    opts.widget.node.classList.add(opts.className);
+    // safe to call classList because we know
+    // opts.widget.node is an HTMLElement
+    // and opts.className is a string
 });
+
+configureWidget(new WidgetHandler(), 'green');
 ```
 
 ## Extra Parameter Warnings
@@ -106,20 +111,43 @@ const method = _$({
 By default, ValidatedMethod warns about unexpected parameters:
 
 ```javascript
-const method = _$({
+const addRecord = _$({
     name: 'string'
-}, opts => opts);
+    age: 'number'
+}, insertData);
 
-method({
+addRecord({
     name: 'test',
-    extra: true  // Logs warning: "Unexpected parameter: extra"
+    age: 40,
+    extra: true  // Warning: "Unexpected parameter: extra"
 });
 ```
 
 ### Quiet Mode
+
+You can globally supress warnings with the static `quiet` flag.
+
 ```javascript
-ValidatedMethod.quiet = true; // Suppress unexpected parameter warnings
-const method = new ValidatedMethod({...bigObj}, callback);
+ValidatedMethod.quiet = true;
+
+const getData = _$({
+    bleep: 'boolean',
+    bloop: 'array'
+}, opts => {
+    return {
+        opts.bleep,
+        opts.bloop
+    }
+});
+
+const ref = {
+    bleep: true,
+    bloop: [],
+    derp: { ...bigObj },
+    zzz: 'more'
+};
+
+getData(ref); // no warnings, best for production
 ```
 
 ## Parameter Styles
@@ -182,7 +210,7 @@ fn1(42);  // Throws: Expected 0 arguments, got 1
 
 ### Custom Validators
 
-You can use functions as validators. They **must** be synchronous and return a truthy/falsey value.
+You can use functions as input type validators. They **must** be synchronous and return a truthy/falsey value.
 
 ```javascript
 const isEven = n => n % 2 === 0;
@@ -198,7 +226,6 @@ const getExact = _$(
 );
 ```
 
-
 ## Error Handling
 Throws a `TypeError` for validation failures:
 
@@ -209,7 +236,21 @@ Throws a `TypeError` for validation failures:
 
 ## Return Type Validation
 
-You can optionally specify a return type as the third parameter:
+You can optionally specify an expected return type as the third parameter.
+
+### Supported Return Types
+
+- All input type identifiers (`'string'`, `'number'`, `'boolean'`, `'null'`, etc)
+- Custom classes (validates instanceof)
+- Regular expressions (tests string conversion)
+- Array of types for multiple options
+- Special types:
+  - `'void'` or `undefined` - Must return undefined
+  - `'any'` - Any value except undefined
+  - `'optional'` - Included for completeness, this is the same as not specifying a return type. Return type is not checked.
+  - `a => a === b` - Use any declared or inline function to validate output
+  
+### Return Type Examples
 
 ```javascript
 // Ensure function returns a string
@@ -220,11 +261,11 @@ const upperCase = _$(
 // Validate class instances
 // including custom and built in types
 const getUser = _$(
-    'number',  id => db.findUser(id), User
+    'number', id => db.findUser(id), User
 );
 
 const getNodes = _$(
-    [ Node, 'string' ],  (el, q) => el.querySelectorAll(q), NodeList
+    [ Node, 'string' ], (el, q) => el.querySelectorAll(q), NodeList
 );
 
 // Allow multiple return types
@@ -241,14 +282,21 @@ const logMessage = _$(
 const process = _$(
     'object', data => processData(data), 'any'
 );
-```
 
-Return type validation supports:
-- All input type identifiers (`'string'`, `'number'`, `'boolean'`, `'null'`, etc)
-- Custom classes (validates instanceof)
-- Regular expressions (tests string conversion)
-- Array of types for multiple options
-- Special types:
-  - `'void'|undefined` - Must return undefined
-  - `'any'` - Any value except undefined
-  - `'optional'` - Included for completeness, this is the same as not specifying a return type. Return type is not checked.
+// Regular Expression test string output
+const checkValue = _$(
+    'string', str => procesValue(str), /^testing$/i
+);
+
+// custom validator function
+const offset = 10;
+const getPositive = _$(
+    'number', num => num - offset, n => n > 0
+);
+getPositive(5); // returns -5, would fail validation
+
+// check by reference
+const complexTask = _$(
+    null, doSomething, checkResults
+);
+```
