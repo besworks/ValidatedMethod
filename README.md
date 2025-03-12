@@ -112,7 +112,7 @@ By default, ValidatedMethod warns about unexpected parameters:
 
 ```javascript
 const addRecord = _$({
-    name: 'string'
+    name: 'string',
     age: 'number'
 }, insertData);
 
@@ -192,7 +192,7 @@ const delayed = _$(
 delayed(1000, () => console.log('Done!')); 
 ```
 
-## Zero Parameter Functions
+### Zero Parameter Functions
 
 For functions that take no parameters, you can use any of these equivalent forms:
 
@@ -203,7 +203,6 @@ const fn2 = _$(null, () => 42, 'number');
 const fn3 = _$('void', () => 42, 'number');
 const fn4 = _$([], () => 42, 'number');
 
-// Usage
 const result = fn1();  // Returns 42
 fn1(42);  // Throws: Expected 0 arguments, got 1
 ```
