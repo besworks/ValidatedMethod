@@ -29,7 +29,7 @@ class UserService {
         email: /^[^@]+@[^@]+\.[^@]+$/,
         birthday: ['string', 'optional']
         title: 'string'
-    }, async (opts) => {
+    }, async opts => {
         // Parameters are validated, safe to use
         return await db.users.create(opts);
     });
@@ -96,7 +96,7 @@ class Widget {
 const configureWidget = _$({
     widget: Widget,
     className: 'string'
-}, (opts) => {
+}, opts => {
     opts.widget.node.classList.add(opts.className);
     // safe to call classList because we know
     // opts.widget.node is an HTMLElement
@@ -135,8 +135,8 @@ const getData = _$({
     bloop: 'array'
 }, opts => {
     return {
-        opts.bleep,
-        opts.bloop
+        e: opts.bleep,
+        o: opts.bloop
     }
 });
 
