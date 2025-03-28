@@ -103,7 +103,7 @@ const configureWidget = _$({
     // and opts.className is a string
 });
 
-configureWidget(new WidgetHandler(), 'green');
+configureWidget(new Widget(), 'green');
 ```
 
 ## Extra Parameter Warnings
