@@ -78,7 +78,7 @@ export class ValidatedMethod {
                 // Handle original object case
                 else {
                     if (this.#validate(params[0], this.#args)) {
-                        return wrappedCallback(params[0]);
+                        return wrappedCallback(params[0] || {});
                     }
                 }
             },

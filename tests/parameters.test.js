@@ -65,3 +65,26 @@ try {
     console.error('✗ All optional parameters test failed:', e.message);
 }
 
+// Test: Optional parameters callback receives empty object
+try {
+    let receivedValue;
+    const method = new ValidatedMethod({
+        a: 'optional',
+        b: 'optional'
+    }, opts => {
+        receivedValue = opts;
+        return true;
+    });
+
+    method();  // Call with no parameters
+    console.assert(
+        typeof receivedValue === 'object' && 
+        Object.keys(receivedValue).length === 0,
+        'Callback should receive empty object for all-optional params'
+    );
+
+    console.log('✓ Optional parameters callback test passed');
+} catch (e) {
+    console.error('✗ Optional parameters callback test failed:', e.message);
+}
+
