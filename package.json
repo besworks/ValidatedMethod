@@ -1,6 +1,6 @@
 {
   "name": "validated-method",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Runtime type checking for JavaScript function parameters",
   "main": "validated-method.js",
   "type": "module",
