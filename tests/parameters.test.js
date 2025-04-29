@@ -37,3 +37,31 @@ try {
     console.error('✗ Function parameter test failed:', e.message);
 }
 
+// Test: All optional parameters
+try {
+    const optionalParams = new ValidatedMethod({
+        a: 'optional',
+        b: ['string', 'optional'],
+        c: ['number', 'optional']
+    }, opts => opts || {});
+
+    console.assert(
+        JSON.stringify(optionalParams()) === '{}',
+        'Should allow undefined when all params optional'
+    );
+
+    console.assert(
+        JSON.stringify(optionalParams(null)) === '{}',
+        'Should allow null when all params optional'
+    );
+
+    console.assert(
+        JSON.stringify(optionalParams({})) === '{}',
+        'Should allow empty object when all params optional'
+    );
+
+    console.log('✓ All optional parameters test passed');
+} catch (e) {
+    console.error('✗ All optional parameters test failed:', e.message);
+}
+

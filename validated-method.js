@@ -172,8 +172,24 @@ export class ValidatedMethod {
             return true;
         }
 
+        // Check if all parameters are optional
+        const allOptional = Object.values(schema).every(v => 
+            v === 'optional' || 
+            (Array.isArray(v) && v.includes('optional'))
+        );
+
+        // Allow undefined/null opts if all params are optional
+        if (!opts && allOptional) {
+            return true;
+        }
+
+        // Add null/undefined check
+        if (!opts || typeof opts !== 'object') {
+            throw new TypeError('Parameters must be provided as an object');
+        }
+
         // Check for extra parameters first
-        for (const key of Object.keys(opts)) {
+        for (const key of Object?.keys(opts)) {
             if (!schema.hasOwnProperty(key)) {
                 if (ValidatedMethod.quiet) continue;
                 console.warn(`Unexpected parameter: ${key}`);
