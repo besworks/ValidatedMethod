@@ -1,3 +1,5 @@
+[![npm version](https://img.shields.io/npm/v/validated-method)](https://www.npmjs.com/package/validated-method)
+
 # ValidatedMethod
 Provides runtime type checking for JavaScript function parameters similar to TypeScript, but with no compiling or dependencies. 
 

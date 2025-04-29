@@ -1,0 +1,23 @@
+{
+  "name": "validated-method",
+  "version": "1.0.0",
+  "description": "Runtime type checking for JavaScript function parameters",
+  "main": "validated-method.js",
+  "type": "module",
+  "scripts": {
+    "test": "node tests/run-tests.js"
+  },
+  "keywords": [
+    "validation",
+    "type-checking",
+    "typescript",
+    "parameters",
+    "types"
+  ],
+  "author": "besworks",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/besworks/validated-method.git"
+  }
+}
