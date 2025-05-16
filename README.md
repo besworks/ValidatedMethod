@@ -16,10 +16,26 @@ Provides runtime type checking for JavaScript function parameters similar to Typ
 - Supports async / Promsie chaining
 - Full test suite included
 
+## Installation
+
+Install via npm.
+
+```sh
+npm i validated-method
+```
+
+Or import from CDN.
+
+```js
+import { ValidatedMethod } from 'https://unpkg.com/validated-method/validated-method.js';
+```
+
+Or copy `validated-method.js` into your project.
+
 ## Usage
 
 ```javascript
-import { ValidatedMethod } from './validated-method.js';
+import { ValidatedMethod } from 'validated-method';
 
 class UserService {
     createUser = new ValidatedMethod({
@@ -84,7 +100,7 @@ myService.createUser({
 The `_$` helper is provided for convenience but can be renamed on import if it conflicts with other libraries:
 
 ```javascript
-import { _$ as VM } from './validated-method.js';
+import { _$ as VM } from 'validated-method';
 const getData = VM('string', performLookupByName);
 ```
 
